@@ -1,0 +1,28 @@
+{# Блок «Вышло продолжение»: свежие новые сезоны/части произведений, у которых
+   досмотрен предыдущий сезон. Показывается только если такие есть.
+   Элементы: {title, seasonNumber, seasonPart, watchedSeason, watchedPart}. #}
+{% if newSeasons is defined and newSeasons %}
+    <section class="new-episodes new-seasons">
+        <h2 class="ne-title">Вышло продолжение</h2>
+        <div class="ne-list">
+            {% for s in newSeasons %}
+                {% set watchedLabel = 'S' ~ s.watchedSeason ~ ((s.watchedPart > 1) ? ' (часть ' ~ s.watchedPart ~ ')' : '') %}
+                {% set newLabel = 'S' ~ s.seasonNumber ~ ((s.seasonPart > 1) ? ' (часть ' ~ s.seasonPart ~ ')' : '') %}
+                <a class="ne-item tv-focus"
+                   href="{{ path('app_title', {id: s.title.id}) }}"
+                   title="{{ s.title.title }} — вы досмотрели {{ watchedLabel }}, вышел {{ newLabel }}">
+                    {% if s.title.poster %}
+                        <img class="ne-poster" src="{{ s.title.poster }}" alt="" loading="lazy">
+                    {% else %}
+                        <span class="ne-poster ne-poster-empty">{{ s.title.title|slice(0, 1) }}</span>
+                    {% endif %}
+                    <span class="ne-body">
+                        <span class="ne-name">{{ s.title.title }}</span>
+                        <span class="ne-meta">Вы досмотрели {{ watchedLabel }}</span>
+                        <span class="ne-next">вышел {{ newLabel }} ▶</span>
+                    </span>
+                </a>
+            {% endfor %}
+        </div>
+    </section>
+{% endif %}

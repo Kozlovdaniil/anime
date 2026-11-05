@@ -1,0 +1,61 @@
+services:
+  database:
+    image: postgres:${POSTGRES_VERSION:-16}-alpine
+    # Ограничение памяти контейнера (на VPS держим в пределах 1 ГБ).
+    mem_limit: 1g
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-films}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-films}
+      POSTGRES_USER: ${POSTGRES_USER:-films}
+    healthcheck:
+      test: ["CMD", "pg_isready", "-d", "${POSTGRES_DB:-films}", "-U", "${POSTGRES_USER:-films}"]
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    volumes:
+      - database_data:/var/lib/postgresql/data:rw
+
+  app:
+    build:
+      context: .
+      args:
+        APP_USER: ${APP_USER:-daikzlex}
+    # Максимум 1 ГБ: полный обход каталога amd:sync иначе может выесть всю
+    # память VPS (профайлер / буферизация DOM).
+    mem_limit: 1g
+    volumes:
+      - ./:/app:rw
+      # Лимит памяти PHP (см. docker/php.ini): иначе полный amd:sync упирается
+      # в дефолтные 128M.
+      - ./docker/php.ini:/usr/local/etc/php/conf.d/zz-app.ini:ro
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-films}:${POSTGRES_PASSWORD:-films}@database:5432/${POSTGRES_DB:-films}?serverVersion=16&charset=utf8
+    depends_on:
+      database:
+        condition: service_healthy
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "${APP_PORT:-8081}:80"
+    volumes:
+      - ./:/app:ro
+      - ./docker/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - app
+
+volumes:
+  database_data:
+    # Внешний том: живёт вне жизненного цикла compose, не удаляется ни при
+    # `docker compose down`, ни при `down -v`, ни при пересоздании контейнеров.
+    # Создать один раз: docker volume create films_database_data
+    external: true
+    name: films_database_data
+
+networks:
+  default:
+    ipam:
+      config:
+        # Явная подсеть: диапазон 172.18.0.0/16 пересекается с VPN-интерфейсом
+        # (tun0 = 172.18.0.1/30), из-за чего контейнеры теряют выход в сеть.
+        - subnet: 172.29.0.0/24

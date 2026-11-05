@@ -1,0 +1,17 @@
+{# Прогресс по «текущей» озвучке тайтла: сколько серий просмотрено из доступных.
+   Ожидает `item` (App\Entity\Title) и `p` — элемент из TitleRepository::watchProgressFor().
+
+   Вынесено из watching/index.html.twig, потому что тот же блок нужен на
+   странице «Просмотрено». #}
+{% set p = p|default(null) %}
+{% if item.isSerial and p and p.total > 0 %}
+    {% set n = p.watched %}
+    {% set m = p.total %}
+    {% set word = (n % 10 == 1 and n % 100 != 11) ? 'серия'
+        : ((n % 10 >= 2 and n % 10 <= 4 and (n % 100 < 12 or n % 100 > 14)) ? 'серии' : 'серий') %}
+    <div class="watch-progress"
+         title="Прогресс по озвучке «{{ p.name }}» — считается по последней просмотренной серии">
+        <span class="wp-voice">🔊 {{ p.name }}</span>
+        <span class="{{ n > 0 ? 'wp-done' : 'muted' }}">Просмотрено <b>{{ n }}</b> {{ word }} из {{ m }}</span>
+    </div>
+{% endif %}

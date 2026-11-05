@@ -1,0 +1,57 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Каталог — Кинотеатр{% endblock %}
+
+{% block body %}
+    {# «Вышло продолжение» и «Новые серии» из «Смотрю» — сверху, перед выбором типа аниме #}
+    {% include '_partials/new_seasons.html.twig' with {newSeasons: newSeasons} only %}
+    {% include '_partials/new_episodes.html.twig' with {newItems: newItems} only %}
+
+    <div class="catalog-toolbar">
+        <div class="filters">
+            <div class="type-filter">
+                <a href="{{ path('app_catalog', app.request.query.all|merge({type: null, genre: null, page: null})) }}"
+                   class="chip {{ type is null and genre is null ? 'active' }}">Все</a>
+                {% for t in types %}
+                    <a href="{{ path('app_catalog', app.request.query.all|merge({type: t, genre: null, page: null})) }}"
+                       class="chip {{ type == t ? 'active' }}">{{ t }}</a>
+                {% endfor %}
+            </div>
+            {% include '_partials/genre_chips.html.twig' with {
+                route: 'app_catalog',
+                baseParams: app.request.query.all|merge({type: type}),
+                genre: genre
+            } only %}
+        </div>
+    </div>
+
+    <div class="catalog-count muted">{{ total }} найдено</div>
+
+    {% if items %}
+        <div class="grid">
+            {% for item in items %}
+                {% include 'catalog/_card.html.twig' with {item: item} only %}
+            {% endfor %}
+        </div>
+
+        {% include '_partials/pagination.html.twig' with {
+            route: 'app_catalog',
+            baseParams: app.request.query.all,
+            page: page,
+            pages: pages
+        } only %}
+    {% else %}
+        <div class="empty">
+            {% if countAll == 0 %}
+                <h2>Каталог пуст</h2>
+                <p>Импортируйте тайтлы командой:</p>
+                <pre>docker compose exec app php bin/console amd:sync "/anime/tip/тв-сериал/" -p=2
+docker compose exec app php bin/console amd:search "Интерстеллар"
+docker compose exec app php bin/console kodik:import "Интерстеллар"</pre>
+            {% else %}
+                <h2>Ничего не найдено</h2>
+                <p>Попробуйте другой запрос.</p>
+            {% endif %}
+        </div>
+    {% endif %}
+{% endblock %}

@@ -1,0 +1,143 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ title.title }} — просмотр{% endblock %}
+
+{# aser.pro (Amedia) отдаёт заглушку «Смотрите на сайте», если приходит Referer
+   чужого сайта — поэтому в requests не уходит реферер вообще.
+   Плеер встраивается через наш прокси /player/frame (см. PlayerFrameController):
+   документ фрейма становится «нашим», реклама вырезана и заблокирована,
+   а player-shim.js отдаёт нам время/перемотку/плей-паузу внутри фрейма. #}
+{% block head %}
+    <meta name="referrer" content="no-referrer">
+{% endblock %}
+
+{% block body_class %}watch-page{% endblock %}
+{% block main_class %}watch-main{% endblock %}
+
+{% block body %}
+    <div id="player-wrap"
+         data-player-link="{{ title.playerLink }}"
+         data-title-id="{{ title.id }}"
+         data-title-name="{{ title.title }}"
+         data-is-serial="{{ title.isSerial ? '1' : '0' }}"
+         data-progress-url="{{ path('app_watching_progress', {id: title.id}) }}"
+         data-progress-token="{{ csrf_token('progress_' ~ title.id) }}">
+
+        <div class="watch-topbar">
+            <a class="btn btn-ghost tv-focus" href="{{ path('app_title', {id: title.id}) }}">← {{ title.title }}</a>
+            <span id="now-playing" class="muted"></span>
+            {# Выбор озвучки: заполняется в player.js из data.translations.
+               Пункты без текущей серии disabled, при единственной озвучке
+               селект целиком disabled. #}
+            <label class="voice-pick" for="voice-select">
+                <span class="voice-pick-label">Озвучка</span>
+                <select id="voice-select" class="voice-select tv-focus" disabled></select>
+            </label>
+            {# Кнопка «во весь экран» — невидима: полноэкранный режим включается
+               двойным кликом по плееру, но кнопка остаётся в разметке (на неё
+               опираются состояние и биндинг обвязки). #}
+            <button type="button" class="fs-ghost" id="btn-fullscreen-ghost"
+                    tabindex="-1" aria-hidden="true"
+                    title="Во весь экран">⛶</button>
+            {% include '_partials/watching_button.html.twig' with {title: title, compact: true} only %}
+        </div>
+
+        <div class="frame-box" id="frame-box">
+            {# Плеер источника — через наш прокси-фрейм (src выставляет player.js) #}
+            <iframe id="player-frame" src="" allowfullscreen
+                    referrerpolicy="no-referrer"
+                    webkitallowfullscreen mozallowfullscreen
+                    allow="autoplay; fullscreen; encrypted-media"></iframe>
+
+            <div id="player-loading" class="player-loading">Загрузка плеера…</div>
+
+            {# Компактная строка состояния поверх плеера: прогресс и время #}
+            <div id="slim-bar" class="slim-bar hidden">
+                <span id="slim-label" class="slim-label"></span>
+                <div class="slim-progress"><div id="slim-progress-fill"></div></div>
+                <span id="slim-time" class="slim-time">0:00 / 0:00</span>
+            </div>
+
+            {# Надстройка быстрого переключения серий (видна вместе со строкой) #}
+            <div id="quick-ep" class="quick-ep hidden">
+                <button type="button" class="qe-btn" id="qe-prev" title="Предыдущая серия">◀</button>
+                <span id="qe-label" class="qe-label">Серия</span>
+                {# Быстрый выбор серии прямо в надстройке (мышь/пульт) #}
+                <select id="qe-select" class="qe-select" title="Выбрать серию"></select>
+                {# Прыжок к серии по номеру — чтобы не листать длинный список #}
+                <input id="qe-input" class="qe-input" type="number" min="1" step="1"
+                       inputmode="numeric" placeholder="№" title="Номер серии — Enter для перехода">
+                <button type="button" class="qe-btn" id="qe-next" title="Следующая серия">▶</button>
+                {% include '_partials/watching_button.html.twig' with {title: title, compact: true} only %}
+            </div>
+
+            {# Панель управления — оверлей поверх плеера.
+               ВРЕМЕННО ОТКЛЮЧЕНА: показывается только если PANEL_ENABLED = true
+               в public/js/player.js. Вёрстка оставлена, чтобы легко вернуть. #}
+            <div id="control-panel" class="control-panel hidden">
+                <div class="cp-row" id="cp-transport" hidden>
+                    <button type="button" class="btn tv-focus" id="btn-seek-back">−10 с</button>
+                    <button type="button" class="btn btn-primary tv-focus" id="btn-play">▶ Старт</button>
+                    <button type="button" class="btn tv-focus" id="btn-seek-fwd">+10 с</button>
+                    {# Точная перемотка: мышью — клик, пультом — фокус на полосе,
+                       ←/→ ±10 с, PageUp/PageDown ±5 мин #}
+                    <div class="cp-progress tv-focus" id="cp-progress" tabindex="0"
+                         title="Перемотка: клик мышью, ←/→ ±10 с, PageUp/PageDown ±5 мин">
+                        <div id="cp-progress-fill"></div>
+                    </div>
+                    <span class="muted" id="cp-time">0:00 / 0:00</span>
+                    <button type="button" class="btn tv-focus" id="btn-fullscreen">⛶ Во весь экран</button>
+                </div>
+
+                <div class="cp-row" id="cp-translation-row">
+                    <span class="cp-label">Озвучка</span>
+                    <div class="cp-items" id="cp-translations"></div>
+                </div>
+
+                <div class="cp-row" id="cp-season-row" hidden>
+                    <span class="cp-label">Сезон</span>
+                    <div class="cp-items" id="cp-seasons"></div>
+                </div>
+
+                <div id="cp-episode-block" hidden>
+                    <div class="cp-row">
+                        <span class="cp-label">Серии</span>
+                        <button type="button" class="btn tv-focus" id="btn-prev">◀ Пред.</button>
+                        <button type="button" class="btn tv-focus" id="btn-next">След. ▶</button>
+                    </div>
+                    <div class="cp-episodes" id="cp-episodes"></div>
+                </div>
+
+                <div class="cp-row cp-nav-row">
+                    <button type="button" class="btn tv-focus" id="btn-hide">Скрыть (↩)</button>
+                    <span class="muted cp-hint">OK — панель · ←→ — перемотка · PageUp/PageDown — серии · синяя — сетка серий</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# Данные о переводах/сериях в JSON для JS-обвязки.
+       Важно: Twig-фильтры sort/map сохраняют исходные ключи, поэтому после
+       пересортировки json_encode мог отдать НЕ массив, а объект
+       ({"0":…,"2":…,"1":…}) — в JS тогда не работал .length и обход по
+       индексу. |merge([]) перенумеровывает ключи и гарантирует массив. #}
+    <script id="player-data" type="application/json">
+        {{ {
+            episodeTotal: title.episodeTotal,
+            translations: title.translations|map(tr => {
+                id: tr.id,
+                name: tr.name,
+                techTitle: tr.techTitle,
+                priority: tr.priority,
+                link: tr.link,
+                lastS: tr.lastSeason,
+                lastE: tr.lastEpisode,
+                episodes: tr.episodes|sort((a, b) => (a.season <=> b.season) ?: (a.episodeNumber <=> b.episodeNumber))|map(ep => {s: ep.season, e: ep.episodeNumber, name: ep.name, link: ep.link})|merge([])
+            })|sort((a, b) => b.priority <=> a.priority)|merge([])
+        }|json_encode(constant('JSON_UNESCAPED_UNICODE'))|raw }}
+    </script>
+{% endblock %}
+
+{% block javascripts %}
+    <script src="{{ asset_v('js/player.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,108 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ title.title }} — Кинотеатр{% endblock %}
+
+{% block body %}
+    <article class="title-page">
+        <div class="title-poster">
+            {% if title.poster %}
+                <img src="{{ title.poster }}" alt="{{ title.title }}">
+            {% else %}
+                <div class="poster-placeholder big">{{ title.title|slice(0, 1) }}</div>
+            {% endif %}
+        </div>
+
+        <div class="title-info">
+            <h1>{{ title.title }}</h1>
+            {% if title.originalTitle and title.originalTitle != title.title %}
+                <div class="muted">{{ title.originalTitle }}</div>
+            {% endif %}
+
+            <div class="title-meta">
+                {% if title.year %}<span>{{ title.year }}</span>{% endif %}
+                {% if title.type %}<span>{{ title.type }}</span>{% endif %}
+                {% if title.duration %}<span>{{ title.duration }}</span>{% endif %}
+                {% if title.ageRestriction %}<span class="age">{{ title.ageRestriction }}</span>{% endif %}
+                {% if title.country %}<span>{{ title.country }}</span>{% endif %}
+            </div>
+
+            <div class="title-ratings">
+                {% if title.ratingKp %}<span class="rating big">КП {{ title.ratingKp }}</span>{% endif %}
+                {% if title.ratingImdb %}<span class="rating big">IMDb {{ title.ratingImdb }}</span>{% endif %}
+            </div>
+
+            {% if title.genres %}
+                <div class="title-genres">
+                    {% for g in title.genres %}
+             <a href="{{ path('app_catalog', app.request.query.all|merge({ genre: g})) }}"
+                       class="chip">{{ g }}</a> 
+                       {% endfor %}
+                </div>
+            {% endif %}
+
+            {% if seasons is defined and seasons|length > 1 %}
+                <div class="title-seasons">
+                    <span class="ts-label">Сезоны:</span>
+                    {% for s in seasons %}
+                        {% set seasonLabel = 'Сезон ' ~ s.seasonNumber %}
+                        {% if s.seasonPart and s.seasonPart > 1 %}
+                            {% set seasonLabel = seasonLabel ~ ', часть ' ~ s.seasonPart %}
+                        {% elseif s.year %}
+                            {% set seasonLabel = seasonLabel ~ ' · ' ~ s.year %}
+                        {% endif %}
+                        {% if s.id == title.id %}
+                            <span class="chip active">{{ seasonLabel }}</span>
+                        {% else %}
+                            <a class="chip tv-focus" href="{{ path('app_title', {id: s.id}) }}"
+                               title="{{ s.title }}">{{ seasonLabel }}</a>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            {% if title.description %}
+                <p class="description">{{ title.description }}</p>
+            {% endif %}
+
+            <div class="title-actions">
+                {% if title.playerLink or title.translations|length > 0 %}
+                    <a class="btn btn-primary tv-focus" href="{{ path('app_watch', {id: title.id}) }}">▶ Смотреть</a>
+                {% else %}
+                    <span class="muted">Ссылка на плеер не получена — выполните {{ title.isFromAmedia ? 'amd:import' : 'kodik:import' }} заново.</span>
+                {% endif %}
+                {% include '_partials/watching_button.html.twig' with {title: title} only %}
+                <a class="btn tv-focus" href="{{ path('app_catalog') }}">← В каталог</a>
+            </div>
+
+            {% if title.isSerial and title.translations|length > 0 %}
+                <section class="translations">
+                    <h2>Озвучки и серии</h2>
+                    {% set episodeTotal = title.episodeTotal %}
+                    {% for tr in title.translations|sort((a, b) => b.priority <=> a.priority) %}
+                        <details {{ loop.first ? 'open' }}>
+                            <summary>{{ tr.name }}{% if tr.techTitle %} <span class="muted">({{ tr.techTitle }})</span>{% endif %}{% if episodeTotal > 0 %} <span class="muted">· {{ tr.episodes|length }}/{{ episodeTotal }}</span>{% endif %}</summary>
+                            {% set episodes = tr.episodes|sort((a, b) => (a.season <=> b.season) ?: (a.episodeNumber <=> b.episodeNumber)) %}
+                            {% if episodes %}
+                                <ul class="episode-list">
+                                    {% for ep in episodes %}
+                                        {% set watched = tr.lastEpisode is not null
+                                            and (ep.season < tr.lastSeason or (ep.season == tr.lastSeason and ep.episodeNumber <= tr.lastEpisode)) %}
+                                        <li>
+                                            <a class="tv-focus{{ watched ? ' is-watched' }}"
+                                               href="{{ path('app_watch', {id: title.id, t: tr.id, s: ep.season, e: ep.episodeNumber}) }}"
+                                               title="{{ watched ? 'Просмотрено' : 'Смотреть' }}">
+                                                {{ watched ? '✓ ' }}С{{ ep.season }} Е{{ ep.episodeNumber }}{% if ep.name %} · {{ ep.name }}{% endif %}
+                                            </a>
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                            {% else %}
+                                <p class="muted">Серии ещё не загружены. Выполните <code>{{ title.isFromAmedia ? 'amd:sync' : 'kodik:sync' }}</code>.</p>
+                            {% endif %}
+                        </details>
+                    {% endfor %}
+                </section>
+            {% endif %}
+        </div>
+    </article>
+{% endblock %}

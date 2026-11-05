@@ -1,0 +1,12 @@
+{# Кнопка «Смотрю». Ожидает `title` (App\Entity\Title); необязательно `compact`.
+   Переключение без перезагрузки делает public/js/watching.js. #}
+{% set compact = compact|default(false) %}
+<button type="button"
+        class="btn watch-toggle{{ compact ? ' watch-toggle-sm' }}{{ title.isWatching ? ' is-on' }}"
+        data-watching-toggle
+        data-url="{{ path('app_watching_toggle', {id: title.id}) }}"
+        data-token="{{ csrf_token('watching_' ~ title.id) }}"
+        data-watching="{{ title.isWatching ? '1' : '0' }}"
+        title="{{ title.isWatching ? 'Убрать из «Смотрю»' : 'Добавить в «Смотрю»' }}">
+    <span data-watching-label>{{ title.isWatching ? '✓ В «Смотрю»' : '+ Смотрю' }}</span>
+</button>

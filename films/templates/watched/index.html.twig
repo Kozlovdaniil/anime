@@ -1,0 +1,46 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Просмотрено — Кинотеатр{% endblock %}
+
+{% block body %}
+    <div class="catalog-toolbar">
+        <h1 class="page-title">✓ Просмотрено</h1>
+    </div>
+    {% include '_partials/genre_chips.html.twig' with {
+        route: 'app_watched',
+        baseParams: {q: q},
+        genre: genre,
+        allLabel: 'Все жанры'
+    } only %}
+
+    {% include '_partials/title_count.html.twig' with {total: total} only %}
+    {% if items %}
+        <div class="grid">
+            {% for item in items %}
+                <div class="watching-cell">
+                    {% include 'catalog/_card.html.twig' with {item: item} only %}
+                    {% include '_partials/watch_progress.html.twig' with {item: item, p: progress[item.id] ?? null} only %}
+                </div>
+            {% endfor %}
+        </div>
+
+        {% include '_partials/pagination.html.twig' with {
+            route: 'app_watched',
+            baseParams: {q: q ?: null, genre: genre},
+            page: page,
+            pages: pages
+        } only %}
+    {% else %}
+        <div class="empty">
+            {% if q or genre %}
+                <h2>Ничего не найдено</h2>
+                <p>Попробуйте другой запрос или жанр.</p>
+            {% else %}
+                <h2>Здесь пока пусто</h2>
+                <p>Сюда попадают тайтлы, которые вы запускали хотя бы раз, но не добавили
+                    в <strong>«Смотрю»</strong>. За новыми сериями они не следят.</p>
+                <a class="btn btn-primary tv-focus" href="{{ path('app_catalog') }}">В каталог</a>
+            {% endif %}
+        </div>
+    {% endif %}
+{% endblock %}

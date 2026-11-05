@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <title>{% block title %}Кинотеатр{% endblock %}</title>
+    <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
+    <link rel="stylesheet" href="{{ asset_v('css/app.css') }}">
+    {% block head %}{% endblock %}
+</head>
+<body class="{% block body_class %}{% endblock %}">
+<header class="site-header">
+    <a class="logo" href="{{ path('app_catalog') }}">▶ КИНО</a>
+    <form class="search" action="{{ path('app_catalog') }}" method="get">
+        <input type="search" name="q" value="{{ q|default('') }}" placeholder="Название фильма или сериала..."
+               autocomplete="off">
+        <button type="submit">Найти</button>
+    </form>
+    {% set wc = watching_count() %}
+    <a class="btn tv-focus nav-link" href="{{ path('app_watching') }}">
+        ★ Смотрю <span class="nav-count" data-watching-count{{ wc == 0 ? ' hidden' }}>{{ wc }}</span>
+    </a>
+    <a class="btn tv-focus nav-link" href="{{ path('app_watched') }}">✓ Просмотрено</a>
+    {% block header_extra %}{% endblock %}
+</header>
+
+{% for label, messages in app.flashes %}
+    {% for message in messages %}
+        <div class="flash flash-{{ label }}">{{ message }}</div>
+    {% endfor %}
+{% endfor %}
+
+<main class="{% block main_class %}container{% endblock %}">
+    {% block body %}{% endblock %}
+</main>
+
+{% block javascripts %}{% endblock %}
+<script src="{{ asset_v('js/watching.js') }}"></script>
+</body>
+</html>

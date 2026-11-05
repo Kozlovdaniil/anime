@@ -1,0 +1,23 @@
+{# Блок «Новые серии» из «Смотрю»: один ряд + нативное <details> для остальных.
+   Показывается только если есть вышедшие непросмотренные серии. #}
+{% if newItems %}
+<section class="new-episodes">
+    <h2 class="ne-title">Новые серии</h2>
+    {% set neRow = 5 %}
+    <div class="ne-list">
+        {% for it in newItems|slice(0, neRow) %}
+            {% include '_partials/new_episode_item.html.twig' with {it: it} only %}
+        {% endfor %}
+    </div>
+    {% if newItems|length > neRow %}
+        <details class="ne-more">
+            <summary class="chip ne-more-btn">Ещё {{ newItems|length - neRow }}</summary>
+            <div class="ne-list ne-list-more">
+                {% for it in newItems|slice(neRow) %}
+                    {% include '_partials/new_episode_item.html.twig' with {it: it} only %}
+                {% endfor %}
+            </div>
+        </details>
+    {% endif %}
+</section>
+{% endif %}

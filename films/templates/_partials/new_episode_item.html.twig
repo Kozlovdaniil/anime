@@ -1,0 +1,14 @@
+<a class="ne-item tv-focus"
+   href="{{ path('app_watch', {id: it.title.id, t: it.translationId, s: it.nextS, e: it.nextE}) }}"
+   title="{{ it.title.title }} — продолжить с S{{ it.nextS }}E{{ it.nextE }}">
+    {% if it.title.poster %}
+        <img class="ne-poster" src="{{ it.title.poster }}" alt="" loading="lazy">
+    {% else %}
+        <span class="ne-poster ne-poster-empty">{{ it.title.title|slice(0, 1) }}</span>
+    {% endif %}
+    <span class="ne-body">
+        <span class="ne-name">{{ it.title.title }}</span>
+        <span class="ne-meta">{{ it.name }} · {% if it.newCount == 1 %}новая серия{% else %}новых серий: {{ it.newCount }}{% endif %}</span>
+        <span class="ne-next">▶ S{{ it.nextS }}E{{ it.nextE }}</span>
+    </span>
+</a>

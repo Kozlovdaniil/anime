@@ -1,0 +1,509 @@
+/* Локальный кинотеатр — тёмная тема, крупные элементы под Smart TV */
+
+:root {
+    --bg: #0e1116;
+    --bg-2: #161b22;
+    --fg: #e6edf3;
+    --muted: #8b949e;
+    --accent: #e50914;
+    --accent-2: #3fb950;
+    --focus: #ffd33d;
+    --radius: 10px;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-size: 20px; /* увеличенный базовый шрифт для ТВ */
+}
+
+a { color: inherit; text-decoration: none; }
+
+/* поля контейнера: сверху/справа на 10px больше — на ТВ контент не сливается с краем */
+.container { max-width: 1500px; margin: 0 auto; padding: 34px 34px 24px 24px; }
+
+/* ---------- хедер ---------- */
+
+.site-header {
+    display: flex;
+    align-items: center;
+    padding: 16px 24px;
+    background: var(--bg-2);
+    border-bottom: 2px solid #21262d;
+    flex-wrap: wrap;
+}
+.site-header > * { margin-right: 24px; }
+
+.logo {
+    font-size: 28px;
+    font-weight: 800;
+    color: var(--accent);
+    letter-spacing: 1px;
+}
+
+.search { display: flex; flex: 1; min-width: 260px; }
+.search > * + * { margin-left: 8px; }
+
+.search input {
+    flex: 1;
+    padding: 12px 16px;
+    font-size: 20px;
+    background: #0d1117;
+    color: var(--fg);
+    border: 2px solid #30363d;
+    border-radius: var(--radius);
+    outline: none;
+}
+
+.search button, .btn {
+    padding: 12px 22px;
+    font-size: 20px;
+    background: #21262d;
+    color: var(--fg);
+    border: 2px solid #30363d;
+    border-radius: var(--radius);
+    cursor: pointer;
+    display: inline-block;
+}
+
+.btn-primary { background: var(--accent); border-color: var(--accent); font-weight: 700; }
+.btn-ghost { background: transparent; }
+
+/* ---------- «Смотрю» ---------- */
+
+/* ссылки на разделы в шапке */
+.nav-link { display: inline-flex; align-items: center; white-space: nowrap; }
+.nav-link > * + * { margin-left: 8px; }
+.nav-count {
+    background: var(--accent); color: #000; font-weight: 700;
+    border-radius: 999px; padding: 1px 10px; font-size: 16px; line-height: 1.5;
+}
+
+/* кнопка-переключатель на карточке/над плеером */
+.watch-toggle { white-space: nowrap; }
+.watch-toggle.is-on { background: #12351b; border-color: #2ea043; color: #7ee787; }
+.watch-toggle[disabled] { opacity: .6; cursor: default; }
+.watch-toggle-sm { padding: 8px 14px; font-size: 17px; }
+
+/* метка «в списке» на постере в сетке */
+.poster .watching-badge {
+    position: absolute; top: 8px; left: 8px;
+    background: var(--accent); color: #000; font-weight: 700;
+    padding: 3px 9px; border-radius: 6px; font-size: 15px;
+}
+
+.page-title { margin: 0; font-size: 28px; }
+
+/* фокус для пульта/клавиатуры */
+.tv-focus:focus {
+    outline: 4px solid var(--focus);
+    outline-offset: 2px;
+    border-radius: var(--radius);
+}
+
+/* ---------- flash ---------- */
+
+.flash { padding: 12px 24px; font-size: 18px; }
+.flash-danger { background: #3d1418; color: #ff7b72; }
+.flash-success { background: #12351b; color: #7ee787; }
+
+/* ---------- каталог ---------- */
+
+.catalog-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.type-filter { display: flex; flex-wrap: wrap; }
+
+/* Жанры: свёрнуты под переключателем «Жанры», развёрнуты при выбранном жанре */
+.genre-toggle > summary { list-style: none; }
+.genre-toggle > summary::-webkit-details-marker { display: none; }
+.genre-chips { display: flex; flex-wrap: wrap; }
+
+/* Отступы задаём margin'ами, а не gap: старые Tizen (Chromium < 84)
+   не поддерживают flex- gap, и элементы слипаются. */
+.chip {
+    padding: 8px 18px;
+    background: var(--bg-2);
+    border: 2px solid #30363d;
+    border-radius: 999px;
+    font-size: 17px;
+    cursor: pointer;
+    color: var(--fg);
+    display: inline-block;
+    margin: 10px 10px 0 0;
+}
+
+.chip.active { background: var(--accent); border-color: var(--accent); font-weight: 700; }
+
+.muted { color: var(--muted); font-size: 17px; }
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    grid-gap: 24px; /* старый синтаксис: Tizen знает grid-gap, но не gap */
+    gap: 24px;
+}
+
+.card { background: var(--bg-2); border-radius: var(--radius); overflow: hidden; border: 2px solid transparent; transition: transform .15s; }
+.card:hover, .card:focus { transform: translateY(-4px); border-color: var(--accent); }
+
+.poster { position: relative; aspect-ratio: 2/3; background: #000; }
+.poster img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+.poster-placeholder {
+    width: 100%; height: 100%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 64px; font-weight: 800; color: #30363d;
+    background: linear-gradient(135deg, #161b22, #21262d);
+}
+.poster-placeholder.big { font-size: 120px; min-height: 400px; border-radius: var(--radius); }
+
+.poster .rating {
+    position: absolute; top: 8px; right: 8px;
+    background: rgba(0,0,0,.8); color: var(--accent-2);
+    font-weight: 700; padding: 3px 10px; border-radius: 6px; font-size: 16px;
+}
+
+.card-title { padding: 12px 12px 4px; font-weight: 600; font-size: 18px; line-height: 1.3; }
+.card-meta { padding: 0 12px 12px; color: var(--muted); font-size: 16px; }
+
+/* ячейка списка «Смотрю»: карточка + кнопка «убрать» */
+.watching-cell { display: flex; flex-direction: column; }
+.watching-cell > * + * { margin-top: 10px; }
+.watching-cell .card { flex: 1 1 auto; }
+
+.watch-progress { color: var(--muted); font-size: 15px; }
+.watch-progress b { color: #79c0ff; font-weight: 700; }
+.watch-progress .wp-voice { color: var(--fg); font-weight: 600; margin-right: 6px; }
+
+/* блок «Новые серии» на странице «Смотрю» */
+.new-episodes { margin: 0 0 26px; }
+.ne-title { font-size: 22px; margin: 0 0 12px; }
+.ne-list { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); grid-gap: 14px; gap: 14px; padding: 4px 2px 12px; }
+.ne-item {
+    display: flex; align-items: center; min-width: 0;
+    background: var(--bg-2); border: 1px solid transparent; border-radius: var(--radius);
+    padding: 10px; color: inherit; text-decoration: none;
+}
+.ne-item > * + * { margin-left: 12px; }
+.ne-item:hover, .ne-item.tv-focus:focus { border-color: var(--accent); outline: none; }
+.ne-more { margin-top: 4px; }
+.ne-more > summary { list-style: none; display: inline-block; }
+.ne-more > summary::-webkit-details-marker { display: none; }
+.ne-list-more { margin-top: 8px; }
+.ne-poster { width: 56px; height: 80px; object-fit: cover; border-radius: 6px; flex: 0 0 auto; background: var(--bg); }
+.ne-poster-empty { display: flex; align-items: center; justify-content: center; font-size: 26px; font-weight: 700; color: var(--muted); }
+.ne-body { display: flex; flex-direction: column; min-width: 0; }
+.ne-body > * + * { margin-top: 4px; }
+.ne-name { font-weight: 600; font-size: 17px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ne-meta { color: var(--muted); font-size: 15px; }
+.ne-next { color: var(--accent-2); font-size: 15px; font-weight: 600; }
+
+/* блок «Вышло продолжение»: новый сезон/часть досмотренного произведения */
+.new-seasons { margin-bottom: 20px; }
+.new-seasons .ne-title { color: var(--accent); }
+.new-seasons .ne-next { color: var(--accent); }
+.new-seasons .ne-item { border-color: var(--accent); }
+
+.pagination { display: flex; align-items: center; justify-content: center; margin: 32px 0; flex-wrap: wrap; }
+.pagination .chip { margin-top: 0; }
+.pagination .page-current { background: var(--accent); border-color: var(--accent); font-weight: 700; cursor: default; }
+.pagination-gap { color: var(--muted); padding: 0 4px; }
+.catalog-count { margin-bottom: 18px; }
+
+.empty { text-align: center; padding: 80px 20px; color: var(--muted); }
+.empty pre { display: inline-block; text-align: left; background: var(--bg-2); padding: 16px 24px; border-radius: var(--radius); color: var(--fg); }
+
+/* ---------- карточка тайтла ---------- */
+
+.title-page { display: flex; flex-wrap: wrap; }
+.title-page > * + * { margin-left: 32px; }
+.title-poster { flex: 0 0 340px; }
+.title-poster img { width: 100%; border-radius: var(--radius); display: block; }
+.title-info { flex: 1; min-width: 300px; }
+
+.title-info h1 { margin: 0 0 6px; font-size: 36px; }
+
+.title-meta { display: flex; margin: 14px 0; flex-wrap: wrap; color: var(--muted); }
+.title-meta > * { margin-right: 14px; }
+.title-meta .age { border: 1px solid var(--muted); padding: 0 8px; border-radius: 4px; }
+
+.title-ratings { display: flex; margin-bottom: 14px; }
+.title-ratings > * + * { margin-left: 12px; }
+.rating.big { background: var(--bg-2); padding: 6px 14px; border-radius: 8px; color: var(--accent-2); font-weight: 700; }
+
+.title-genres { display: flex; flex-wrap: wrap; margin-bottom: 16px; }
+/* Связка сезонов одной франшизы (см. SeasonLinker) */
+.title-seasons { display: flex; flex-wrap: wrap; align-items: center; margin-bottom: 16px; }
+.title-seasons .ts-label { color: var(--muted); margin-right: 4px; }
+
+.description { font-size: 19px; line-height: 1.6; color: #c9d1d9; }
+
+.title-actions { display: flex; margin: 22px 0; flex-wrap: wrap; }
+.title-actions > * { margin: 0 14px 14px 0; }
+
+.translations { margin-top: 30px; }
+.translations h2 { font-size: 24px; }
+.translations details { background: var(--bg-2); border-radius: var(--radius); margin-bottom: 12px; padding: 6px 18px; }
+.translations summary { cursor: pointer; padding: 12px 0; font-weight: 600; font-size: 19px; }
+
+.episode-list { list-style: none; margin: 0; padding: 0 0 14px; display: flex; flex-wrap: wrap; }
+.episode-list > * { margin: 0 10px 10px 0; }
+.episode-list a {
+    display: inline-block; padding: 8px 16px;
+    background: #0d1117; border: 2px solid #30363d; border-radius: 8px; font-size: 17px;
+}
+.episode-list a:hover { border-color: var(--accent); }
+.episode-list a.is-watched {
+    background: #152238;
+    border-color: #1f6feb;
+    color: #9ecbff;
+}
+
+/* ---------- плеер ---------- */
+
+/* вся страница плеера — колонка ровно в пределах окна, без прокрутки:
+   хедер + main + плеер складываются в 100vh, ничего не обрезается снизу */
+.watch-page {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+}
+.watch-page .site-header { flex: 0 0 auto; }
+.watch-main {
+    flex: 1 1 auto;
+    min-height: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+#player-wrap {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+    background: #000;
+}
+
+.watch-topbar {
+    display: flex; align-items: center;
+    padding: 10px 20px; background: var(--bg-2); flex: 0 0 auto;
+}
+.watch-topbar > * + * { margin-left: 18px; }
+.watch-topbar .watch-toggle { margin-left: auto; }
+
+/* выбор озвучки в топбаре плеера (заполняется из player.js) */
+.voice-pick { display: flex; align-items: center; }
+.voice-pick-label { color: var(--muted); font-size: 16px; margin-right: 10px; white-space: nowrap; }
+.voice-select {
+    min-height: 44px;
+    max-width: 340px;
+    padding: 0 12px;
+    font-size: 16px;
+    color: var(--fg); background: #21262d;
+    border: 1px solid #30363d; border-radius: 8px;
+    cursor: pointer;
+}
+.voice-select:hover { border-color: var(--accent); }
+.voice-select:disabled { opacity: .55; cursor: default; }
+.voice-select:disabled:hover { border-color: #30363d; }
+
+.quick-ep .watch-toggle-sm { padding: 8px 12px; font-size: 16px; }
+
+.frame-box { position: relative; flex: 1 1 auto; min-height: 0; background: #000; }
+
+#player-frame {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+    border: 0; background: #000;
+    outline: none;
+}
+
+.player-loading {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--muted); font-size: 24px; background: #000;
+    pointer-events: none;
+    z-index: 25;
+}
+.player-loading.error { color: #ff7b72; }
+
+/* компактная строка времени поверх видео (показывается по любому действию) */
+.slim-bar {
+    position: absolute; left: 0; right: 0; bottom: 0; z-index: 20;
+    #display: flex; align-items: center; gap: 16px;
+    display: none !important;
+    padding: 12px 18px 14px;
+    background: linear-gradient(transparent, rgba(0, 0, 0, .8));
+    pointer-events: none;
+}
+.slim-label { color: var(--muted); font-size: 17px; white-space: nowrap; }
+.slim-progress { flex: 1 1 auto; height: 8px; background: #333; border-radius: 4px; overflow: hidden; min-width: 120px; }
+#slim-progress-fill { height: 100%; width: 0; background: var(--accent); }
+.slim-time { font-size: 17px; white-space: nowrap; }
+
+/* надстройка быстрого переключения серий (видна вместе со строкой времени) */
+.quick-ep {
+    position: absolute; left: 16px; bottom: 62px; z-index: 21;
+    display: flex; align-items: center;
+    padding: 8px 10px;
+    background: rgba(14, 17, 22, .92);
+    border: 1px solid #2d333b;
+    border-radius: 10px;
+}
+.quick-ep > * + * { margin-left: 10px; }
+.quick-ep .qe-btn {
+    min-width: 56px; min-height: 48px;
+    font-size: 20px; line-height: 1;
+    color: #fff; background: #21262d;
+    border: 1px solid #30363d; border-radius: 8px;
+    cursor: pointer;
+}
+.quick-ep .qe-btn:hover { border-color: var(--accent); }
+.quick-ep .qe-label {
+    min-width: 110px; text-align: center;
+    font-size: 18px; color: #fff; white-space: nowrap;
+}
+/* селект серии в той же надстройке: крупный, с той же фокус-рамкой */
+.quick-ep .qe-select {
+    min-height: 48px;
+    max-width: 240px;
+    padding: 0 12px;
+    font-size: 17px;
+    color: #fff; background: #21262d;
+    border: 1px solid #30363d; border-radius: 8px;
+    cursor: pointer;
+}
+.quick-ep .qe-select:hover { border-color: var(--accent); }
+.quick-ep .qe-select:focus {
+    outline: 4px solid var(--focus);
+    outline-offset: 2px;
+}
+/* поле «прыжок к серии по номеру» */
+.quick-ep .qe-input {
+    width: 92px; min-height: 48px;
+    padding: 0 10px;
+    font-size: 18px; text-align: center;
+    color: #fff; background: #21262d;
+    border: 1px solid #30363d; border-radius: 8px;
+    -moz-appearance: textfield;
+}
+.quick-ep .qe-input::-webkit-outer-spin-button,
+.quick-ep .qe-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.quick-ep .qe-input:hover { border-color: var(--accent); }
+.quick-ep .qe-input:focus {
+    outline: 4px solid var(--focus);
+    outline-offset: 2px;
+}
+
+/* панель управления — оверлей поверх видео/iframe */
+.control-panel {
+    position: absolute; left: 0; right: 0; bottom: 0; z-index: 30;
+    background: rgba(14, 17, 22, .97);
+    border-top: 3px solid var(--accent);
+    padding: 16px 20px 18px;
+    max-height: 62vh;
+    overflow-y: auto;
+}
+
+.control-panel.hidden { display: none; }
+
+.cp-row { display: flex; align-items: center; gap: 14px; margin-bottom: 12px; flex-wrap: wrap; }
+.cp-label { min-width: 110px; color: var(--muted); font-size: 18px; }
+.cp-items { display: flex; gap: 10px; flex-wrap: wrap; }
+
+#btn-play { min-width: 170px; }
+#cp-time { font-size: 19px; }
+
+/* полоса перемотки в транспорте: клик мышью или ←/→ при фокусе */
+.cp-progress {
+    position: relative;
+    flex: 1 1 200px;
+    min-width: 160px;
+    height: 16px;
+    background: #30363d;
+    border-radius: 8px;
+    overflow: hidden;
+    cursor: pointer;
+}
+#cp-progress-fill { height: 100%; width: 0; background: var(--accent); }
+
+/* Невидимая кнопка «во весь экран» в топбаре: остаётся в разметке, но не
+   занимает места и не участвует в фокусе — полноэкранный режим включается
+   двойным кликом по плееру. */
+.fs-ghost {
+    position: absolute;
+    width: 1px; height: 1px;
+    padding: 0; margin: -1px;
+    border: 0;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+}
+
+/* «во весь экран» — фолбэк на старых браузерах без Fullscreen API.
+   Размеры дублируются inline-пикселями из player.js: на старых WebKit
+   у `position: fixed` элемента `100%` иногда считается не от окна. */
+/* «во весь экран» — фолбэк на старых браузерах без Fullscreen API.
+   Размеры дублируются inline-пикселями из player.js: на старых WebKit
+   у `position: fixed` элемента `100%` иногда считается не от окна. */
+.frame-box.fs-fake {
+    position: fixed;
+    left: 0; top: 0; right: 0; bottom: 0;
+    width: 100%; height: 100%;
+    margin: 0;
+    z-index: 2147483000;
+    background: #000;
+}
+
+/* Настоящий нативный фуллскрин: прячем шапку сайта и верхнюю панель, чтобы
+   плеер занимал весь экран (иначе они остаются висеть сверху).
+   Основной селектор — по классу `fs-active`, который ставит player.js: на
+   старом WebKit (Tizen) псевдокласс `:fullscreen` к потомкам не применяется.
+   ВАЖНО: вендорные псевдоклассы нельзя объединять в один список с обычными —
+   неизвестный селектор делает недействительным всё правило целиком, поэтому
+   `:fullscreen` идёт отдельным правилом. */
+.fs-active .site-header,
+.fs-active .watch-topbar {
+    display: none;
+}
+
+:fullscreen .site-header,
+:fullscreen .watch-topbar {
+    display: none;
+}
+
+/* сетка серий (крупные плитки под пульт) */
+.cp-episodes {
+    display: flex; flex-wrap: wrap;
+    max-height: 32vh;
+    overflow-y: auto;
+    margin-bottom: 14px;
+    padding: 4px;
+}
+.cp-episodes .chip {
+    text-align: center;
+    font-size: 19px;
+    padding: 13px 16px;
+    margin: 0 8px 8px 0;
+    border-radius: 8px;
+    min-width: 88px;
+}
+
+.cp-nav-row { gap: 12px; margin-top: 4px; margin-bottom: 0; }
+.cp-hint { margin-left: auto; font-size: 15px; }
+
+.hidden { display: none !important; }

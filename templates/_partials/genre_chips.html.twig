@@ -1,0 +1,23 @@
+{# Жанры как в меню «Жанр» на amd.online (порядок сайта).
+   Свёрнуты под переключателем «Жанры»; если жанр выбран — развёрнуты. #}
+{% set amdGenres = [
+    '3D', 'Китайское', 'Сёнен', 'Сэйнэн', 'Сёдзё', 'Дзёсей', 'Комедия', 'Романтика',
+    'Школа', 'Безумие', 'Боевые искусства', 'Вампиры', 'Военное', 'Гарем', 'Гурман',
+    'Демоны', 'Детектив', 'Детское', 'Драма', 'Игры', 'Исторический', 'Космос', 'Магия',
+    'Машины', 'Меха', 'Музыка', 'Пародия', 'Повседневность', 'Полиция', 'Приключения',
+    'Психологическое', 'Работа', 'Самураи', 'Сверхъестественное', 'Спорт', 'Супер сила',
+    'Ужасы', 'Фантастика', 'Фэнтези', 'Экшен', 'Этти', 'Триллер',
+] %}
+<details class="genre-toggle"{{ genre ? ' open' }}>
+    <summary class="chip{{ genre ? ' active' }}">Жанры</summary>
+    <div class="genre-chips">
+        {% if allLabel is defined and allLabel %}
+            <a href="{{ path(route, baseParams|merge({genre: null, page: null})) }}"
+               class="chip {{ genre is null ? 'active' }}">{{ allLabel }}</a>
+        {% endif %}
+        {% for g in amdGenres %}
+            <a href="{{ path(route, baseParams|merge({genre: g|lower, page: null})) }}"
+               class="chip {{ genre|lower == g|lower ? 'active' }}">{{ g }}</a>
+        {% endfor %}
+    </div>
+</details>

@@ -1,0 +1,54 @@
+{# Номерная пагинация: первая, ±3 от текущей, текущая (не ссылка), последняя. #}
+{% if pages > 1 %}
+    {% set win = 3 %}
+    {% set start = max(2, page - win) %}
+    {% set end = min(pages - 1, page + win) %}
+    {% set afterStart = page + 1 %}
+    <nav class="pagination">
+        {% if page > 1 %}
+            <a class="chip tv-focus" rel="prev" title="Назад"
+               href="{{ path(route, baseParams|merge({page: page - 1})) }}">‹</a>
+        {% endif %}
+
+        {% if page == 1 %}
+            <span class="chip page-current">1</span>
+        {% else %}
+            <a class="chip tv-focus" href="{{ path(route, baseParams|merge({page: 1})) }}">1</a>
+        {% endif %}
+
+        {% if start > 2 %}
+            <span class="pagination-gap">…</span>
+        {% endif %}
+
+        {% if start <= page - 1 %}
+            {% for p in start..(page - 1) %}
+                <a class="chip tv-focus" href="{{ path(route, baseParams|merge({page: p})) }}">{{ p }}</a>
+            {% endfor %}
+        {% endif %}
+
+        {% if page != 1 and page != pages %}
+            <span class="chip page-current">{{ page }}</span>
+        {% endif %}
+
+        {% if afterStart <= end %}
+            {% for p in afterStart..end %}
+                <a class="chip tv-focus" href="{{ path(route, baseParams|merge({page: p})) }}">{{ p }}</a>
+            {% endfor %}
+        {% endif %}
+
+        {% if end < pages - 1 %}
+            <span class="pagination-gap">…</span>
+        {% endif %}
+
+        {% if page == pages %}
+            <span class="chip page-current">{{ pages }}</span>
+        {% else %}
+            <a class="chip tv-focus" href="{{ path(route, baseParams|merge({page: pages})) }}">{{ pages }}</a>
+        {% endif %}
+
+        {% if page < pages %}
+            <a class="chip tv-focus" rel="next" title="Вперёд"
+               href="{{ path(route, baseParams|merge({page: page + 1})) }}">›</a>
+        {% endif %}
+    </nav>
+{% endif %}

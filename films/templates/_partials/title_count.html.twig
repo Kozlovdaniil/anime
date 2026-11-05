@@ -1,0 +1,4 @@
+{# Счётчик над сеткой: «14 тайтлов». Ожидает `total`. #}
+{% set word = (total % 10 == 1 and total % 100 != 11) ? 'тайтл'
+    : ((total % 10 >= 2 and total % 10 <= 4 and (total % 100 < 12 or total % 100 > 14)) ? 'тайтла' : 'тайтлов') %}
+<div class="catalog-count muted">{{ total }} {{ word }}</div>

@@ -1,0 +1,17 @@
+{# Карточка тайтла в сетке каталога. Ожидает `item` (App\Entity\Title). #}
+<a class="card tv-focus" href="{{ path('app_title', {id: item.id}) }}">
+    <div class="poster">
+        {% if item.poster %}
+            <img src="{{ item.poster }}" alt="{{ item.title }}" loading="lazy">
+        {% else %}
+            <div class="poster-placeholder">{{ item.title|slice(0, 1) }}</div>
+        {% endif %}
+        {% if item.ratingKp %}<span class="rating">{{ item.ratingKp }}</span>{% endif %}
+        {% if item.watching %}<span class="watching-badge" title="В «Смотрю»">★</span>{% endif %}
+    </div>
+    <div class="card-title">{{ item.title }}</div>
+    {% set n = item.episodeCount %}
+    {% set word = (n % 10 == 1 and n % 100 != 11) ? 'серия'
+        : ((n % 10 >= 2 and n % 10 <= 4 and (n % 100 < 12 or n % 100 > 14)) ? 'серии' : 'серий') %}
+    <div class="card-meta">{{ item.year ?: '—' }}{% if item.isSerial %} · сериал{% endif %}{% if n > 0 %} ({{ n }} {{ word }}){% endif %}</div>
+</a>
