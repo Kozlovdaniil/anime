@@ -186,6 +186,7 @@ final class AmediaSync
         // недостающее»: серии и озвучки только создаются, уже имеющиеся —
         // не перезаписываются, удаления нет.
         $this->applyAmediaTranslation($title, $p);
+
         $this->applyKodikVoices($title, $p);
         $this->fillPlayerLink($title, $p);
 
@@ -317,6 +318,7 @@ final class AmediaSync
     private function applyKodikVoices(Title $title, array $p): void
     {
         $voices = $p['kodikVoices'] ?? [];
+
         if (!$voices && !empty($p['kodikLink'])) {
             // у фильма вкладка Kodik бывает без кнопок озвучек — один iframe на всех
             $voices = [[
@@ -325,9 +327,11 @@ final class AmediaSync
                 'src' => $p['kodikLink'],
             ]];
         }
+
         if (!$voices) {
             return;
         }
+
 
         $episodes = $p['episodes'] ?? [];
         $season = (int) ($p['season'] ?? 1);
@@ -336,6 +340,7 @@ final class AmediaSync
         foreach ($voices as $voice) {
             $externalId = 'kodik:'.$voice['id'];
             $src = $voice['src'];
+           
 
             $translation = $this->findTranslation($title, $externalId);
             if (null === $translation) {
@@ -364,8 +369,9 @@ final class AmediaSync
             // перечислены озвучки одной серии, и раздавать их на все серии
             // нельзя. Если Kodik недоступен/токен мёртв — грубый набор из amd,
             // чтобы озвучка не осталась пустой и не выпала из переключателя.
-            if ($translation->getEpisodes()->isEmpty()
-                && !$this->applyKodikCoverage($translation, $src)) {
+
+            if (!$this->applyKodikCoverage($translation, $src)) {
+
                 foreach ($episodes as $epRaw) {
                     $number = (int) $epRaw['number'];
                     if ($number <= 0) {
@@ -373,6 +379,8 @@ final class AmediaSync
                     }
                     // ссылка вычисляется детерминированно из базовой ссылки озвучки;
                     // серия добавляется только если её ещё нет
+                  
+                  
                     $this->addEpisodeIfMissing(
                         $translation,
                         $season,
@@ -394,12 +402,14 @@ final class AmediaSync
     private function applyKodikCoverage(Translation $translation, string $url): bool
     {
         // материал озвучки: .../serial/<id>/... или .../video/<id>/...
+  
         if (!preg_match('#kodikplayer\.com/(serial|video)/(\d+)/#', $url, $m)) {
             return false;
         }
         $material = ('video' === $m[1] ? 'movie' : 'serial').'-'.$m[2];
 
         $coverage = $this->kodikCoverage->fetch($material);
+
         if (null === $coverage || [] === $coverage) {
             return false;
         }
@@ -537,7 +547,9 @@ final class AmediaSync
      */
     private function addEpisodeIfMissing(Translation $translation, int $season, int $number, ?string $link): void
     {
+
         $existing = $this->findEpisode($translation, $season, $number);
+    
         if (null !== $existing) {
             if (self::isPlaceholderLink($existing->getLink()) && !self::isPlaceholderLink($link)) {
                 $existing->setLink($link);
@@ -546,12 +558,14 @@ final class AmediaSync
             return;
         }
 
+
         $episode = (new Episode())
             ->setSeason($season)
             ->setEpisodeNumber($number)
             ->setLink($link);
         $translation->addEpisode($episode);
         $this->em->persist($episode);
+         $this->em->flush();
         ++$this->addedEpisodes;
     }
 
